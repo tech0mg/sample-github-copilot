@@ -1,0 +1,30 @@
+# Environment variables
+.env
+*.env
+!.env.sample
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (if using clasp)
+node_modules/
+package-lock.json
+
+# clasp (GAS CLI tool) files
+.clasp.json
