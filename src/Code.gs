@@ -7,6 +7,118 @@
  * 2. メニューから「セットアップ」を実行してください
  */
 
+// ==========================================
+// Web App エンドポイント
+// ==========================================
+
+/**
+ * Web App のGETリクエストを処理
+ * HTMLフロントエンドを提供
+ */
+function doGet(e) {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('スプレッドシートデータベース管理')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Web App のPOSTリクエストを処理
+ * API エンドポイント
+ */
+function doPost(e) {
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const action = params.action;
+    
+    let result;
+    
+    switch (action) {
+      case 'findAll':
+        result = apiGetAllData();
+        break;
+      case 'find':
+        result = apiFind(params.condition);
+        break;
+      case 'insert':
+        result = apiInsert(params.data);
+        break;
+      case 'update':
+        result = apiUpdate(params.id, params.data);
+        break;
+      case 'delete':
+        result = apiDelete(params.id);
+        break;
+      case 'getHeaders':
+        result = apiGetHeaders();
+        break;
+      default:
+        throw new Error(`Unknown action: ${action}`);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      data: result
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    Logger.error('API Error', { error: error.toString() });
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ==========================================
+// API 関数
+// ==========================================
+
+function apiGetAllData() {
+  const db = new SpreadsheetDB();
+  return db.findAll();
+}
+
+function apiFind(condition) {
+  const db = new SpreadsheetDB();
+  return db.find(condition);
+}
+
+function apiInsert(data) {
+  const db = new SpreadsheetDB();
+  return db.insert(data);
+}
+
+function apiUpdate(id, data) {
+  const db = new SpreadsheetDB();
+  db.updateById(id, data);
+  return { success: true };
+}
+
+function apiDelete(id) {
+  const db = new SpreadsheetDB();
+  db.deleteById(id);
+  return { success: true };
+}
+
+function apiGetHeaders() {
+  const db = new SpreadsheetDB();
+  const headers = db.getHeaders();
+  const primaryKey = Config.getPrimaryKeyColumn();
+  const createdAt = Config.getCreatedAtColumn();
+  const updatedAt = Config.getUpdatedAtColumn();
+  
+  // 編集可能なフィールドのみを返す（主キーとタイムスタンプを除く）
+  const editableHeaders = headers.filter(h => 
+    h !== primaryKey && h !== createdAt && h !== updatedAt
+  );
+  
+  return {
+    all: headers,
+    editable: editableHeaders,
+    primaryKey: primaryKey
+  };
+}
+
 /**
  * スプレッドシートを開いたときに実行されるイベント
  */
