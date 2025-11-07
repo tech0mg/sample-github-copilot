@@ -369,7 +369,7 @@
         const response = await callAPI({ action: 'getHeaders' });
         headers = response;
       } catch (error) {
-        throw new Error('ヘッダー情報の取得に失敗しました');
+        throw new Error('ヘッダー情報の取得に失敗しました: ' + error.message);
       }
     }
 
@@ -437,23 +437,48 @@
       let html = '<table><thead><tr>';
       
       headers.all.forEach(header => {
-        html += `<th>${header}</th>`;
+        html += `<th>${escapeHtml(header)}</th>`;
       });
       html += '<th>操作</th></tr></thead><tbody>';
 
       data.forEach(row => {
+        const pkValue = escapeHtml(row[headers.primaryKey] || '');
         html += '<tr>';
         headers.all.forEach(header => {
           html += `<td>${escapeHtml(row[header] || '')}</td>`;
         });
         html += `<td class="actions">
-          <button class="btn btn-primary" onclick='editData("${row[headers.primaryKey]}")'>編集</button>
-          <button class="btn btn-danger" onclick='deleteData("${row[headers.primaryKey]}")'>削除</button>
+          <button class="btn btn-primary" data-action="edit" data-id="${pkValue}">編集</button>
+          <button class="btn btn-danger" data-action="delete" data-id="${pkValue}">削除</button>
         </td></tr>`;
       });
 
       html += '</tbody></table>';
       dataTable.innerHTML = html;
+      
+      // イベントデリゲーションで安全に処理
+      attachTableEventHandlers();
+    }
+
+    // テーブルのイベントハンドラを設定
+    function attachTableEventHandlers() {
+      const dataTable = document.getElementById('dataTable');
+      const table = dataTable.querySelector('table');
+      
+      if (!table) return;
+      
+      table.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn')) {
+          const action = e.target.getAttribute('data-action');
+          const id = e.target.getAttribute('data-id');
+          
+          if (action === 'edit') {
+            editData(id);
+          } else if (action === 'delete') {
+            deleteData(id);
+          }
+        }
+      });
     }
 
     // フォームをクリア
