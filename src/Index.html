@@ -269,6 +269,26 @@
         font-size: 12px;
       }
     }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      max-width: 500px;
+      width: 90%;
+      margin: 20px;
+    }
   </style>
 </head>
 <body>
@@ -298,7 +318,7 @@
         <div class="btn-group">
           <button class="btn btn-primary" onclick="loadData()">🔄 更新</button>
           <button class="btn btn-secondary" onclick="filterActive()">Active のみ表示</button>
-          <button class="btn btn-secondary" onclick="loadData()">すべて表示</button>
+          <button class="btn btn-secondary" onclick="clearFilter()">すべて表示</button>
         </div>
         <div id="dataTable">
           <div class="loading">
@@ -311,8 +331,8 @@
   </div>
 
   <!-- 編集モーダル（シンプルな実装） -->
-  <div id="editModal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div class="card" style="max-width: 500px; width: 90%; margin: 20px;">
+  <div id="editModal" class="hidden modal-overlay">
+    <div class="card modal-content">
       <h2>✏️ データ編集</h2>
       <form id="editForm">
         <div id="editFormFields"></div>
@@ -581,6 +601,11 @@
     function filterActive() {
       const filtered = allData.filter(row => row.Status === 'Active');
       renderTable(filtered);
+    }
+
+    // フィルターをクリア
+    function clearFilter() {
+      renderTable(allData);
     }
 
     // API呼び出し
